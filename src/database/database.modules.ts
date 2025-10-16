@@ -19,6 +19,9 @@ import { Task } from '../modules/tasks/entities/task.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       ssl: { rejectUnauthorized: false },
+        extra: {
+          ssl: { rejectUnauthorized: false },
+     },
       entities: [Task],
       synchronize: true,
     }),
