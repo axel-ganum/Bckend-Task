@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto } from './dto/create-task.dto';
+import {  CreateTaskWithAiDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 
@@ -8,10 +8,11 @@ import { Task } from './entities/task.entity';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @Post()
-  create(@Body() dto: CreateTaskDto): Promise<Task> {
-    return this.tasksService.create(dto);
-  }
+@Post('ai')
+createWithAi(@Body() dto: CreateTaskWithAiDto ) {
+  return this.tasksService.createWithAi(dto.message);
+}
+
 
   @Get()
   findAll() {

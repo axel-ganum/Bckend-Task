@@ -1,11 +1,7 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
-export class CreateTaskDto {
-  @IsString()
+export class CreateTaskWithAiDto {
   @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
+  message: string;
 }
+

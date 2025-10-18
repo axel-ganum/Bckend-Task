@@ -9,11 +9,12 @@ export class Task {
   title: string;
 
   @Column({ nullable: true })
-  description?: string;
+  description: string;
 
-  @Column({ default: 'pending' })
-  status: 'pending' | 'completed';
+  @Column('text', { array: true, default: '{}' })
+  tags: string[];
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ default: false })
+  completed: boolean;
 }
+

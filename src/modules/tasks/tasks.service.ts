@@ -2,26 +2,35 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
-import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 
 @Injectable()
 export class TasksService {
+  aiService: any;
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
   ) {}
 
- async create(dto: CreateTaskDto) {
-    try {
-      const task = this.taskRepository.create(dto);
-      return await this.taskRepository.save(task);
-    } catch (error) {
-      throw new internalServerException('Error creating task');
-    }
+async createWithAi(message: string) {
+  // Llamamos a la IA para generar título, descripción y tags
+  const aiTask = await this.aiService.generateTask(message);
+
+  const task = this.taskRepository.create({
+    title: aiTask.title,
+    description: aiTask.description,
+    tags: aiTask.tags,
+  });
+
+  try {
+    return await this.taskRepository.save(task);
+  } catch {
+    throw new internalServerException('Error al crear tarea con IA');
   }
+}
+
 
   async findAll() {
     try {
