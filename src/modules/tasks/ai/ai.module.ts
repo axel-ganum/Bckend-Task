@@ -6,6 +6,6 @@ import { AiController } from './ai.controller';
     imports: [],
     controllers: [AiController],
     providers: [AiService],
-    exports: [],
+    exports: [AiService],
 })
 export class AiModule {}

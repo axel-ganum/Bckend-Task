@@ -69,4 +69,37 @@ Mensaje del usuario: "${message}"
     throw new Error('Error al comunicarse con el modelo de DeepSeek');
   }
 }
+
+ async analyzeTasks(tasks: any[], question: string) {
+    const prompt = `
+El usuario tiene las siguientes tareas:
+
+${JSON.stringify(tasks, null, 2)}
+
+Pregunta del usuario: "${question}"
+
+Analiza las tareas y responde en lenguaje natural, con claridad y utilidad.
+`;
+
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/chat/completions`,
+        {
+          model: this.model,
+          messages: [{ role: 'user', content: prompt }],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      return response.data.choices[0].message?.content?.trim();
+    } catch (error) {
+      console.error('Error en analyzeTasks:', error.response?.data || error.message);
+      throw new Error('Error al comunicarse con el modelo de DeepSeek');
+    }
+  }
 }

@@ -5,13 +5,14 @@ import { Task } from './entities/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
+import { AiService } from './ai/ai.service';
 
 @Injectable()
 export class TasksService {
-  aiService: any;
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
+    private readonly aiService: AiService
   ) {}
 
 async createWithAi(message: string) {
@@ -63,5 +64,10 @@ async createWithAi(message: string) {
   } catch (error) {
     throw new internalServerException('Error removing task');
   }
+  }
+
+  async analyzeTaskWithAi(question: string) {
+    const tasks = await this.taskRepository.find();
+    return this.aiService.analyzeTasks(tasks, question);
   }
 }

@@ -19,6 +19,12 @@ createWithAi(@Body() dto: CreateTaskWithAiDto ) {
     return this.tasksService.findAll();
   }
 
+  @Get('analyze')
+  async analyzeTaskWithAi(@Body('question') question: string) {
+    return this.tasksService.analyzeTaskWithAi(question);
+  }
+  
+
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Task> {
     return this.tasksService.findOne(id);
