@@ -13,7 +13,10 @@ export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-      private readonly subtaskRepository: Repository<Subtask>,
+
+    @InjectRepository(Subtask) 
+     private readonly subtaskRepository: Repository<Subtask>,
+     
     private readonly aiService: AiService
   ) {}
 

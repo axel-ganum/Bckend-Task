@@ -18,7 +18,8 @@ export class Task {
   @Column({ default: false })
   completed: boolean;
   
-  @OneToMany(() => Subtask, (subtask) => subtask.task, { cascade: true })
+
+  @OneToMany(() => Subtask, subtask => subtask.task, { cascade: true })
   subtasks: Subtask[];
 }
 

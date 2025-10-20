@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { Task } from '../modules/tasks/entities/task.entity';
+import { Subtask } from 'src/modules/tasks/entities/subtask.entity';
 
 
 
@@ -22,7 +23,7 @@ import { Task } from '../modules/tasks/entities/task.entity';
         extra: {
           ssl: { rejectUnauthorized: false },
      },
-      entities: [Task],
+      entities: [Task,Subtask],
       synchronize: true,
     }),
   ],
