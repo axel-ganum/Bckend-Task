@@ -30,6 +30,12 @@ createWithAi(@Body() dto: CreateTaskWithAiDto ) {
     return this.tasksService.findOne(id);
   }
 
+
+  @Post(':id/subtasks')
+ async generateSubtasks(@Param('id') id: string) {
+  return this.tasksService.generateSubtasksForTask(id);
+ }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateTaskDto): Promise<Task> {
     return this.tasksService.update(id, dto);

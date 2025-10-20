@@ -6,12 +6,14 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 import { AiService } from './ai/ai.service';
+import { Subtask } from './entities/subtask.entity';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
+      private readonly subtaskRepository: Repository<Subtask>,
     private readonly aiService: AiService
   ) {}
 
@@ -70,4 +72,30 @@ async createWithAi(message: string) {
     const tasks = await this.taskRepository.find();
     return this.aiService.analyzeTasks(tasks, question);
   }
+
+  async generateSubtasksForTask(id: string) {
+  const task = await this.findOne(id);
+
+  const subtasks = await this.aiService.generateSubtasks(task.description);
+
+   if (!subtasks.length) {
+      return { message: 'La IA no generó subtareas', task };
+    } 
+
+      const created = subtasks.map((s) =>
+      this.subtaskRepository.create({
+        title: s.title,
+        description: s.description,
+        task,
+      }),
+    );
+
+    await this.subtaskRepository.save(created);
+
+  return {
+    task,
+    subtasks,
+  };
+}
+
 }

@@ -102,4 +102,42 @@ Analiza las tareas y responde en lenguaje natural, con claridad y utilidad.
       throw new Error('Error al comunicarse con el modelo de DeepSeek');
     }
   }
+
+
+ async generateSubtasks(taskDescription: string) {
+    const prompt = `
+Divide la siguiente tarea en subtareas concretas. 
+Devuelve un JSON válido en el siguiente formato:
+{
+  "subtasks": [
+    { "title": "Subtarea 1", "description": "Descripción breve" },
+    { "title": "Subtarea 2", "description": "Descripción breve" }
+  ]
 }
+
+Tarea: "${taskDescription}"
+    `;
+
+    const response = await axios.post(
+      `${this.baseUrl}/chat/completions`,
+      {
+        model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
+        messages: [{ role: 'user', content: prompt }],
+      },
+      {
+        headers: { Authorization: `Bearer ${this.apiKey}` },
+      },
+    );
+
+    // tratar de parsear el JSON que devuelva la IA
+    try {
+      const content = response.data?.choices?.[0]?.message?.content || '{}';
+      const parsed = JSON.parse(content);
+      return parsed.subtasks || [];
+    } catch (error) {
+      console.error('Error parsing subtasks JSON:', error);
+      return [];
+    }
+  }
+}
+

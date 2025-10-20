@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Subtask } from './subtask.entity';
 
 @Entity()
 export class Task {
@@ -16,5 +17,8 @@ export class Task {
 
   @Column({ default: false })
   completed: boolean;
+  
+  @OneToMany(() => Subtask, (subtask) => subtask.task, { cascade: true })
+  subtasks: Subtask[];
 }
 
