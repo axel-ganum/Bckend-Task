@@ -131,7 +131,14 @@ Tarea: "${taskDescription}"
 
     // tratar de parsear el JSON que devuelva la IA
     try {
-      const content = response.data?.choices?.[0]?.message?.content || '{}';
+      let content = response.data?.choices?.[0]?.message?.content || '{}';
+
+       content = content
+      .replace(/^```json\s*/i, '') // elimina ```json al principio
+      .replace(/^```/, '')         // elimina ``` al principio sin json
+      .replace(/```$/, '')         // elimina ``` al final
+      .trim();
+
       const parsed = JSON.parse(content);
       return parsed.subtasks || [];
     } catch (error) {
