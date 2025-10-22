@@ -146,5 +146,26 @@ Tarea: "${taskDescription}"
       return [];
     }
   }
+
+  async summarizeTasks(tasks: any[]) {
+  const prompt = `
+Tienes las siguientes tareas:
+
+${JSON.stringify(tasks, null, 2)}
+
+Haz un resumen breve, destacando objetivos principales y tareas urgentes.
+Devuelve en lenguaje natural.
+  `;
+
+  const response = await axios.post(`${this.baseUrl}/chat/completions`, {
+    model: this.model,
+    messages: [{ role: 'user', content: prompt }],
+  }, {
+    headers: { Authorization: `Bearer ${this.apiKey}` },
+  });
+
+  return response.data.choices[0].message?.content?.trim();
+}
+
 }
 
