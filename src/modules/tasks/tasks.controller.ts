@@ -48,7 +48,7 @@ createWithAi(@Body() dto: CreateTaskWithAiDto ) {
     return this.tasksService.findAll();
   }
 
-  @Get('analyze')
+  @Post('analyze')
   async analyzeTaskWithAi(@Body('question') question: string) {
     return this.tasksService.analyzeTaskWithAi(question);
   }
