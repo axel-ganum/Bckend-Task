@@ -6,6 +6,14 @@ async function bootstrap() {
   
   const app = await NestFactory.create(AppModule);
 
+   app.enableCors({
+    origin: [
+      'http://localhost:5173', // URL del frontend en desarrollo (Vite)
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // si necesitás enviar cookies o headers de autenticación
+  });
+
  app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,

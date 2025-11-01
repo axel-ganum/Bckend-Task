@@ -3,44 +3,25 @@ import { TasksService } from './tasks.service';
 import {  CreateTaskWithAiDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
+import { AiService } from './ai/ai.service';
 
 @Controller('tasks')
 export class TasksController {
-  aiService: any;
-  constructor(private readonly tasksService: TasksService) {}
+
+  constructor(private readonly tasksService: TasksService,
+   private readonly aiService: AiService,
+  ) {}
 
 @Post('ai')
 createWithAi(@Body() dto: CreateTaskWithAiDto ) {
   return this.tasksService.createWithAi(dto.message);
 }
 
-
 @Post('summarize')
-  async summarizeTasks() {
-    try {
-      const tasks = await this.tasksService.findAll();
+async summarizeTasks() {
+  return this.tasksService.summarizeTasks();
+}
 
-      if (!tasks.length) {
-        throw new HttpException(
-          'No hay tareas para resumir',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const summary = await this.aiService.summarizeTasks(tasks);
-
-      return {
-        success: true,
-        summary,
-      };
-    } catch (error) {
-      console.error('Error en /tasks/summarize:', error);
-      throw new HttpException(
-        'Error al generar el resumen con IA',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
 
 
   @Get()

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -71,34 +71,46 @@ async createWithAi(message: string) {
   }
   }
 
-  async analyzeTaskWithAi(question: string) {
-    const tasks = await this.taskRepository.find();
-    return this.aiService.analyzeTasks(tasks, question);
+ async analyzeTaskWithAi(question: string) {
+  const tasks = await this.taskRepository.find();
+  const result = await this.aiService.analyzeTasks(tasks, question);
+  // verificar que result tenga keys correctas
+  return {
+    insights: result.insights || 'No hay insights',
+    suggestions: result.suggestions || 'No hay sugerencias',
+  };
+}
+
+
+  async summarizeTasks() {
+    const tasks = await this.findAll();
+
+    if (!tasks.length) {
+      throw new BadRequestException('No hay tareas para resumir');
+    }
+
+    return this.aiService.summarizeTasks(tasks);
   }
 
-  async generateSubtasksForTask(id: string) {
+async generateSubtasksForTask(id: string) {
   const task = await this.findOne(id);
 
   const subtasks = await this.aiService.generateSubtasks(task.description);
 
-   if (!subtasks.length) {
-      return { message: 'La IA no generó subtareas', task };
-    } 
-
-      const created = subtasks.map((s) =>
-      this.subtaskRepository.create({
-        title: s.title,
-        description: s.description,
-        task,
-      }),
+  if (subtasks.length > 0) {
+    const created = subtasks.map((s) =>
+      this.subtaskRepository.create({ title: s.title, description: s.description, task }),
     );
-
     await this.subtaskRepository.save(created);
+  }
 
-  return {
-    task,
-    subtasks,
-  };
+  // Devolver task con subtasks cargadas
+  return this.taskRepository.findOne({
+    where: { id },
+    relations: ['subtasks'],
+  });
 }
 
+
+  
 }
