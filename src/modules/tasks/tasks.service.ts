@@ -91,16 +91,16 @@ async createWithAi(message: string) {
 
     return this.aiService.summarizeTasks(tasks);
   }
-async generateSubtasksForTask(id: string) {
-  const task = await this.findOne(id);
 
+  async generateSubtasksForTask(id: string) {
+  const task = await this.findOne(id);
   const subtasks = await this.aiService.generateSubtasks(task.description);
 
   if (!subtasks || subtasks.length === 0) {
     return { message: 'La IA no generó subtareas', task };
   }
 
-  // 🧹 Eliminar duplicados o subtareas muy parecidas
+  // 🧹 Limpiar y eliminar duplicados
   const uniqueSubtasks = subtasks
     .map((s) => ({
       title: s.title.trim(),
@@ -115,7 +115,9 @@ async generateSubtasksForTask(id: string) {
             t.title.toLowerCase().includes(s.title.toLowerCase()) ||
             s.title.toLowerCase().includes(t.title.toLowerCase()),
         ),
-    );
+    )
+    // 🔢 Limitar a 8 subtareas como máximo
+    .slice(0, 8);
 
   const created = uniqueSubtasks.map((s) =>
     this.subtaskRepository.create({
@@ -127,11 +129,13 @@ async generateSubtasksForTask(id: string) {
 
   await this.subtaskRepository.save(created);
 
+  // Devolver tarea con subtareas actualizadas
   return this.taskRepository.findOne({
     where: { id },
     relations: ['subtasks'],
   });
 }
+
 
 
 
