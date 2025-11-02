@@ -91,25 +91,48 @@ async createWithAi(message: string) {
 
     return this.aiService.summarizeTasks(tasks);
   }
-
 async generateSubtasksForTask(id: string) {
   const task = await this.findOne(id);
 
   const subtasks = await this.aiService.generateSubtasks(task.description);
 
-  if (subtasks.length > 0) {
-    const created = subtasks.map((s) =>
-      this.subtaskRepository.create({ title: s.title, description: s.description, task }),
-    );
-    await this.subtaskRepository.save(created);
+  if (!subtasks || subtasks.length === 0) {
+    return { message: 'La IA no generó subtareas', task };
   }
 
-  // Devolver task con subtasks cargadas
+  // 🧹 Eliminar duplicados o subtareas muy parecidas
+  const uniqueSubtasks = subtasks
+    .map((s) => ({
+      title: s.title.trim(),
+      description: s.description?.trim() || '',
+    }))
+    .filter(
+      (s, index, self) =>
+        index ===
+        self.findIndex(
+          (t) =>
+            t.title.toLowerCase() === s.title.toLowerCase() ||
+            t.title.toLowerCase().includes(s.title.toLowerCase()) ||
+            s.title.toLowerCase().includes(t.title.toLowerCase()),
+        ),
+    );
+
+  const created = uniqueSubtasks.map((s) =>
+    this.subtaskRepository.create({
+      title: s.title,
+      description: s.description,
+      task,
+    }),
+  );
+
+  await this.subtaskRepository.save(created);
+
   return this.taskRepository.findOne({
     where: { id },
     relations: ['subtasks'],
   });
 }
+
 
 
   
