@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { Task } from '../entities/task.entity';
 
 @Injectable()
 export class AiService {
+  summarizeTasks(tasks: Task[]) {
+    throw new Error('Method not implemented.');
+  }
   generateText(arg0: string) {
     throw new Error('Method not implemented.');
   }
@@ -104,68 +108,68 @@ Analiza las tareas y responde en lenguaje natural, con claridad y utilidad.
   }
 
 
- async generateSubtasks(taskDescription: string) {
-    const prompt = `
-Divide la siguiente tarea en subtareas concretas. 
-Devuelve un JSON válido en el siguiente formato:
+async generateSubtasks(taskDescription: string) {
+  const prompt = `
+Eres un asistente especializado en gestión de tareas.
+
+Tu trabajo es dividir la siguiente tarea en un máximo de 8 subtareas cortas, específicas y accionables.
+
+Devuelve **solo** un JSON válido, sin texto adicional, en este formato exacto:
+
 {
   "subtasks": [
-    { "title": "Subtarea 1", "description": "Descripción breve" },
-    { "title": "Subtarea 2", "description": "Descripción breve" }
+    { "title": "nombre corto", "description": "detalle breve" }
   ]
 }
 
 Tarea: "${taskDescription}"
-    `;
-
-    const response = await axios.post(
-      `${this.baseUrl}/chat/completions`,
-      {
-        model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
-        messages: [{ role: 'user', content: prompt }],
-      },
-      {
-        headers: { Authorization: `Bearer ${this.apiKey}` },
-      },
-    );
-
-    // tratar de parsear el JSON que devuelva la IA
-    try {
-      let content = response.data?.choices?.[0]?.message?.content || '{}';
-
-       content = content
-      .replace(/^```json\s*/i, '') // elimina ```json al principio
-      .replace(/^```/, '')         // elimina ``` al principio sin json
-      .replace(/```$/, '')         // elimina ``` al final
-      .trim();
-
-      const parsed = JSON.parse(content);
-      return parsed.subtasks || [];
-    } catch (error) {
-      console.error('Error parsing subtasks JSON:', error);
-      return [];
-    }
-  }
-
-  async summarizeTasks(tasks: any[]) {
-  const prompt = `
-Tienes las siguientes tareas:
-
-${JSON.stringify(tasks, null, 2)}
-
-Haz un resumen breve, destacando objetivos principales y tareas urgentes.
-Devuelve en lenguaje natural.
   `;
 
-  const response = await axios.post(`${this.baseUrl}/chat/completions`, {
-    model: this.model,
-    messages: [{ role: 'user', content: prompt }],
-  }, {
-    headers: { Authorization: `Bearer ${this.apiKey}` },
-  });
+  const response = await axios.post(
+    `${this.baseUrl}/chat/completions`,
+    {
+      model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.6,
+    },
+    {
+      headers: { Authorization: `Bearer ${this.apiKey}` },
+    },
+  );
 
-  return response.data.choices[0].message?.content?.trim();
+  try {
+    let content = response.data?.choices?.[0]?.message?.content || '{}';
+
+    // 🧹 Limpiar el contenido si viene con ```json o ``` alrededor
+    content = content
+      .replace(/```json\s*/gi, '')
+      .replace(/```/g, '')
+      .trim();
+
+    // 🧩 Intentar parsear directamente
+    let parsed: any;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      // 🪄 Fallback: extraer el JSON válido dentro del texto
+      const match = content.match(/\{[\s\S]*\}/);
+      parsed = match ? JSON.parse(match[0]) : { subtasks: [] };
+    }
+
+    // 🧠 Validar que realmente haya subtareas
+    if (!parsed.subtasks || !Array.isArray(parsed.subtasks)) return [];
+
+    // ✂️ Limitar a máximo 8 y limpiar textos
+    return parsed.subtasks.slice(0, 8).map((s) => ({
+      title: s.title?.trim(),
+      description: s.description?.trim(),
+    }));
+  } catch (error) {
+    console.error('Error parsing subtasks JSON:', error);
+    return [];
+  }
 }
+
 
 }
 
