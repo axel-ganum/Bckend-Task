@@ -6,7 +6,6 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 import { AiService } from './ai/ai.service';
-import { Subtask } from './entities/subtask.entity';
 import { SubtasksService } from './subtasks.service';
 
 @Injectable()
@@ -15,11 +14,8 @@ export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
-
-    @InjectRepository(Subtask) 
-      private readonly subtasksService: SubtasksService,
-     
-    private readonly aiService: AiService
+     private readonly subtasksService: SubtasksService,
+     private readonly aiService: AiService
   ) {}
 
 async createWithAi(message: string) {
@@ -94,7 +90,7 @@ async createWithAi(message: string) {
     return this.aiService.summarizeTasks(tasks);
   }
 
-  async generateSubtasksForTask(id: string) {
+async generateSubtasksForTask(id: string) {
   const task = await this.findOne(id);
   const subtasks = await this.aiService.generateSubtasks(task.description);
 
@@ -102,7 +98,7 @@ async createWithAi(message: string) {
     return { message: 'La IA no generó subtareas', task };
   }
 
-  // 🧹 Limpiar y eliminar duplicados
+  // Limpiar y eliminar duplicados
   const uniqueSubtasks = subtasks
     .map((s) => ({
       title: s.title.trim(),
@@ -118,18 +114,10 @@ async createWithAi(message: string) {
             s.title.toLowerCase().includes(t.title.toLowerCase()),
         ),
     )
-    // 🔢 Limitar a 8 subtareas como máximo
     .slice(0, 8);
 
-  const created = uniqueSubtasks.map((s) =>
-    this.subtasksService.create({
-      title: s.title,
-      description: s.description,
-      task,
-    }),
-  );
-
-  await this.subtasksService.save(created);
+  // Guardar todas las subtareas usando SubtasksService
+  await this.subtasksService.createManyForTask(task, uniqueSubtasks);
 
   // Devolver tarea con subtareas actualizadas
   return this.taskRepository.findOne({
@@ -140,6 +128,7 @@ async createWithAi(message: string) {
 
 
 
+    
 
   
 }
