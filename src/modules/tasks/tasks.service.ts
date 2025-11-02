@@ -7,15 +7,17 @@ import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 import { AiService } from './ai/ai.service';
 import { Subtask } from './entities/subtask.entity';
+import { SubtasksService } from './subtasks.service';
 
 @Injectable()
 export class TasksService {
+  subtaskRepository: any;
   constructor(
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
 
     @InjectRepository(Subtask) 
-     private readonly subtaskRepository: Repository<Subtask>,
+      private readonly subtasksService: SubtasksService,
      
     private readonly aiService: AiService
   ) {}
@@ -120,14 +122,14 @@ async createWithAi(message: string) {
     .slice(0, 8);
 
   const created = uniqueSubtasks.map((s) =>
-    this.subtaskRepository.create({
+    this.subtasksService.create({
       title: s.title,
       description: s.description,
       task,
     }),
   );
 
-  await this.subtaskRepository.save(created);
+  await this.subtasksService.save(created);
 
   // Devolver tarea con subtareas actualizadas
   return this.taskRepository.findOne({

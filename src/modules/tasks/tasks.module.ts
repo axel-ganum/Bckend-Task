@@ -4,10 +4,12 @@ import { Task } from './entities/task.entity';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
 import { AiModule } from './ai/ai.module';
-import { Subtask } from './entities/subtask.entity';
+import { SubtasksModule } from './subtask.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task, Subtask]), AiModule],
+  imports: [TypeOrmModule.forFeature([Task]), AiModule,
+  SubtasksModule
+],
   controllers: [TasksController],
   providers: [TasksService],
   exports: [TasksService],

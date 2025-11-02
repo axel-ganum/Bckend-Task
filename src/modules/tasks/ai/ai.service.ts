@@ -110,15 +110,19 @@ Analiza las tareas y responde en lenguaje natural, con claridad y utilidad.
 
 async generateSubtasks(taskDescription: string) {
   const prompt = `
-Eres un asistente especializado en gestión de tareas.
+Divide la siguiente tarea en subtareas claras (máximo 8). 
+Cada subtarea debe tener un título y una breve descripción.
 
-Tu trabajo es dividir la siguiente tarea en un máximo de 8 subtareas cortas, específicas y accionables.
+⚠️ IMPORTANTE:
+- Devuelve SOLO un JSON válido.
+- NO escribas texto fuera del JSON.
+- Si no puedes seguir el formato, devuelve un JSON vacío: {"subtasks": []}
 
-Devuelve **solo** un JSON válido, sin texto adicional, en este formato exacto:
-
+Formato esperado:
 {
   "subtasks": [
-    { "title": "nombre corto", "description": "detalle breve" }
+    { "title": "Subtarea 1", "description": "Descripción breve" },
+    { "title": "Subtarea 2", "description": "Descripción breve" }
   ]
 }
 
@@ -130,7 +134,9 @@ Tarea: "${taskDescription}"
     {
       model: 'deepseek-ai/DeepSeek-V3.2-Exp:novita',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.6,
+      temperature: 0.5,
+      max_tokens: 400,
+      stop: ['\n\n'], // corta antes de texto adicional
     },
     {
       headers: { Authorization: `Bearer ${this.apiKey}` },
@@ -140,35 +146,25 @@ Tarea: "${taskDescription}"
   try {
     let content = response.data?.choices?.[0]?.message?.content || '{}';
 
-    // 🧹 Limpiar el contenido si viene con ```json o ``` alrededor
+    // Log temporal (te lo muestro en consola para debug)
+    console.log('🧠 RAW AI RESPONSE:', content);
+
     content = content
       .replace(/```json\s*/gi, '')
       .replace(/```/g, '')
       .trim();
 
-    // 🧩 Intentar parsear directamente
-    let parsed: any;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      // 🪄 Fallback: extraer el JSON válido dentro del texto
-      const match = content.match(/\{[\s\S]*\}/);
-      parsed = match ? JSON.parse(match[0]) : { subtasks: [] };
-    }
+    const match = content.match(/\{[\s\S]*\}/);
+    const cleanJson = match ? match[0] : '{}';
+    const parsed = JSON.parse(cleanJson);
 
-    // 🧠 Validar que realmente haya subtareas
-    if (!parsed.subtasks || !Array.isArray(parsed.subtasks)) return [];
-
-    // ✂️ Limitar a máximo 8 y limpiar textos
-    return parsed.subtasks.slice(0, 8).map((s) => ({
-      title: s.title?.trim(),
-      description: s.description?.trim(),
-    }));
+    return parsed.subtasks?.slice(0, 8) || [];
   } catch (error) {
     console.error('Error parsing subtasks JSON:', error);
     return [];
   }
 }
+
 
 
 }
