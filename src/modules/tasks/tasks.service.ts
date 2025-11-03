@@ -80,15 +80,16 @@ async findOne(id: string) {
   }
   }
 
- async analyzeTaskWithAi(question: string) {
+async analyzeTaskWithAi(question: string) {
   const tasks = await this.taskRepository.find();
   const result = await this.aiService.analyzeTasks(tasks, question);
-  // verificar que result tenga keys correctas
+
   return {
     insights: result.insights || 'No hay insights',
     suggestions: result.suggestions || 'No hay sugerencias',
   };
 }
+
 
 
   async summarizeTasks() {

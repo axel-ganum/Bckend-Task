@@ -75,37 +75,51 @@ Mensaje del usuario: "${message}"
 }
 
  async analyzeTasks(tasks: any[], question: string) {
-    const prompt = `
+  const prompt = `
 El usuario tiene las siguientes tareas:
-
 ${JSON.stringify(tasks, null, 2)}
 
 Pregunta del usuario: "${question}"
 
-Analiza las tareas y responde en lenguaje natural, con claridad y utilidad.
+Responde en JSON con la siguiente estructura:
+{
+  "insights": "Un análisis claro y útil",
+  "suggestions": "Sugerencias para mejorar"
+}
 `;
 
-    try {
-      const response = await axios.post(
-        `${this.baseUrl}/chat/completions`,
-        {
-          model: this.model,
-          messages: [{ role: 'user', content: prompt }],
+  try {
+    const response = await axios.post(
+      `${this.baseUrl}/chat/completions`,
+      {
+        model: this.model,
+        messages: [{ role: 'user', content: prompt }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
         },
-        {
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      },
+    );
 
-      return response.data.choices[0].message?.content?.trim();
-    } catch (error) {
-      console.error('Error en analyzeTasks:', error.response?.data || error.message);
-      throw new Error('Error al comunicarse con el modelo de DeepSeek');
+    const content = response.data.choices[0].message?.content?.trim();
+
+    // intentar parsear como JSON
+    try {
+      return JSON.parse(content);
+    } catch {
+      return {
+        insights: content || 'No hay insights',
+        suggestions: content || 'No hay sugerencias',
+      };
     }
+
+  } catch (error) {
+    console.error('Error en analyzeTasks:', error.response?.data || error.message);
+    throw new Error('Error al comunicarse con el modelo de DeepSeek');
   }
+}
 
 
 async generateSubtasks(taskDescription: string) {
