@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, UpdateDateColumn } from 'typeorm';
 import { Subtask } from './subtask.entity';
 
 @Entity()
@@ -21,5 +21,11 @@ export class Task {
 
   @OneToMany(() => Subtask, subtask => subtask.task, { cascade: true })
   subtasks: Subtask[];
+   @CreateDateColumn()
+  createdAt: Date;
+
+  // 🔄 Fecha de última actualización automática
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 

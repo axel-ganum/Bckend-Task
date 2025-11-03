@@ -35,20 +35,31 @@ async createWithAi(message: string) {
   }
 }
 
-
-  async findAll() {
-    try {
-      return await this.taskRepository.find();
-    } catch (error) {
-      throw new internalServerException('Error finding tasks');
-    }
+async findAll() {
+  try {
+    return await this.taskRepository.find({
+      relations: ['subtasks'],
+      order: { createdAt: 'DESC' as const },
+    });
+  } catch (error) {
+    console.error('Error al obtener las tareas:', error);
+    throw new Error('No se pudieron obtener las tareas');
   }
+}
 
-  async findOne(id: string) {
-    const task = await this.taskRepository.findOne({ where: { id } });
-    if (!task) throw new NotFoundException(`Task ${id} not found`);
-    return task;
-  }
+
+  // TasksService
+async findOne(id: string) {
+  const task = await this.taskRepository.findOne({
+    where: { id },
+    relations: ['subtasks'], // << esto es clave
+  });
+  if (!task) throw new NotFoundException(`Task ${id} not found`);
+  return task;
+}
+
+
+
 
   async update(id: string, dto: UpdateTaskDto) {
     const task = await this.findOne(id);
@@ -128,7 +139,7 @@ async generateSubtasksForTask(id: string) {
 
 
 
-    
+  
 
   
 }
