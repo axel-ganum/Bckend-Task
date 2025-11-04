@@ -91,16 +91,23 @@ async analyzeTaskWithAi(question: string) {
 }
 
 
+async summarizeTasks() {
+  const tasks = await this.findAll();
 
-  async summarizeTasks() {
-    const tasks = await this.findAll();
-
-    if (!tasks.length) {
-      throw new BadRequestException('No hay tareas para resumir');
-    }
-
-    return this.aiService.summarizeTasks(tasks);
+  if (!tasks.length) {
+    throw new BadRequestException('No hay tareas para resumir');
   }
+
+  try {
+    const summary = await this.aiService.summarizeTasks(tasks);
+    return summary;
+  } catch (error) {
+    console.error('Error al resumir tareas:', error.message);
+    throw new internalServerException('No se pudo generar el resumen de tareas');
+  }
+}
+
+
 
 async generateSubtasksForTask(id: string) {
   const task = await this.findOne(id);

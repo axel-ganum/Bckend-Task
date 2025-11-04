@@ -4,9 +4,7 @@ import { Task } from '../entities/task.entity';
 
 @Injectable()
 export class AiService {
-  summarizeTasks(tasks: Task[]) {
-    throw new Error('Method not implemented.');
-  }
+
   generateText(arg0: string) {
     throw new Error('Method not implemented.');
   }
@@ -180,6 +178,41 @@ Tarea: "${taskDescription}"
 }
 
 
+ async summarizeTasks(tasks: any[]) {
+  const prompt = `
+Resumí claramente las siguientes tareas en formato conciso:
 
+${JSON.stringify(tasks, null, 2)}
+
+Indicá los principales objetivos, estado y próximas acciones.
+`;
+
+  try {
+    const response = await axios.post(
+      `${this.baseUrl}/chat/completions`,
+      {
+        model: this.model,
+        messages: [{ role: 'user', content: prompt }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    const content = response.data.choices?.[0]?.message?.content?.trim();
+
+    try {
+      const parsed = JSON.parse(content);
+      return parsed.summary ? parsed : { summary: content };
+    } catch {
+      return { summary: content || 'No se pudo generar un resumen.' };
+    }
+  } catch (error) {
+    console.error('Error en summarizeTasks:', error.response?.data || error.message);
+    throw new Error('Error al comunicarse con la IA para resumir tareas');
+  }
+} 
 }
-
