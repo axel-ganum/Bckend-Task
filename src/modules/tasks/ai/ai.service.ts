@@ -18,15 +18,29 @@ export class AiService {
 
 async generateTask(message: string) {
   try {
+    // Parsear el mensaje como JSON
+    let taskData;
+    try {
+      taskData = JSON.parse(message);
+    } catch (e) {
+      // Si no es un JSON válido, manejarlo como texto plano
+      taskData = { title: message };
+    }
+
     const prompt = `
-Genera una tarea en formato JSON con los siguientes campos:
-{
-  "title": "Título breve de la tarea",
-  "description": "Descripción clara y específica de la tarea",
-  "tags": ["etiqueta1", "etiqueta2"]
-}
-Mensaje del usuario: "${message}"
-    `;
+Genera una tarea detallada con la siguiente información:
+
+Título: ${taskData.title}
+${taskData.description ? `Descripción: ${taskData.description}\n` : ''}${taskData.priority ? `Prioridad: ${taskData.priority}\n` : ''}${taskData.dueDate ? `Fecha límite: ${new Date(taskData.dueDate).toLocaleDateString('es-ES', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+})}\n` : ''}
+
+Por favor, genera una tarea bien estructurada, detallada y completa basada en la información proporcionada. 
+Asegúrate de que la descripción sea clara y completa, sin cortes. 
+Si es necesario, incluye subtareas o pasos para completar la tarea principal.`;
 
     const response = await axios.post(
       `${this.baseUrl}/chat/completions`,
