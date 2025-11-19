@@ -28,21 +28,28 @@ async generateTask(message: string) {
     }
 
     const prompt = `
-Genera una tarea detallada con la siguiente información:
+Generá una tarea clara y breve basada en los siguientes datos:
 
 Título: ${taskData.title}
-${taskData.description ? `Descripción: ${taskData.description}\n` : ''}${taskData.priority ? `Prioridad: ${taskData.priority}\n` : ''}${taskData.dueDate ? `Fecha límite: ${new Date(taskData.dueDate).toLocaleDateString('es-ES', {
-  weekday: 'long',
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-})}\n` : ''}
+${taskData.description ? `Descripción: ${taskData.description}\n` : ''}${taskData.priority ? `Prioridad: ${taskData.priority}\n` : ''}${taskData.dueDate ? `Fecha límite: ${new Date(taskData.dueDate).toLocaleDateString('es-ES')}\n` : ''}
 
-Por favor, genera una tarea bien estructurada, detallada y completa basada en la información proporcionada. 
-Asegúrate de que la descripción sea clara y completa, sin cortes. 
-Si es necesario, incluye subtareas o pasos para completar la tarea principal.`;
+Instrucciones para generar la tarea:
+- La descripción debe tener entre 2 y 5 líneas.
+- No generes textos largos ni secciones grandes.
+- No uses encabezados tipo H1/H2.
+- Si corresponde, agregá entre 3 y 7 subtareas simples.
+- El contenido final debe ser práctico, conciso y fácil de leer.
+- Nada de documentación extensa, pasos kilométricos ni bloques largos.
 
-    const response = await axios.post(
+Formato:
+{
+  "title": "",
+  "description": "",
+  "subtasks": []
+}
+`;
+   
+   const response = await axios.post(
       `${this.baseUrl}/chat/completions`,
       {
         model: this.model,
@@ -59,27 +66,53 @@ Si es necesario, incluye subtareas o pasos para completar la tarea principal.`;
     let content = response.data.choices[0].message?.content?.trim() || '';
 
     // Limpiar bloque de código ```json ... ```
-    const codeBlockMatch = content.match(/```json([\s\S]*?)```/i);
+    const codeBlockMatch = content.match(/```(?:json)?\n?([\s\S]*?)```/i);
     if (codeBlockMatch) {
       content = codeBlockMatch[1].trim();
     }
 
-    // Intentamos parsear como JSON
-    try {
-      const parsed = JSON.parse(content);
-      return {
-        title: parsed.title || 'Tarea sin título',
-        description: parsed.description || '',
-        tags: parsed.tags || [],
-      };
-    } catch {
-      // Si no es JSON válido, devolvemos texto simple
-      return {
-        title: message,
-        description: content,
-        tags: [],
-      };
+    // Intentamos extraer un objeto JSON si existe
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        
+       return {
+  title: parsed.title || taskData.title || 'Tarea sin título',
+  description: parsed.description || content,
+  priority: parsed.priority || taskData.priority,
+  status: 'pending',
+  dueDate: parsed.dueDate || taskData.dueDate,
+  subtasks: parsed.subtasks || [],
+  tags: parsed.tags || []
+};
+
+      } catch (e) {
+        console.log('No se pudo parsear como JSON, usando texto plano');
+      }
     }
+const normalizePriority = (p) => {
+  if (!p) return 'low';
+  p = p.toLowerCase();
+
+  if (['alta', 'high'].includes(p)) return 'high';
+  if (['media', 'medium', 'medio'].includes(p)) return 'medium';
+  if (['baja', 'low'].includes(p)) return 'low';
+
+  return 'low';
+};
+
+    // Si no se pudo extraer JSON, devolvemos el contenido como descripción
+   return {
+  title: taskData.title || 'Tarea sin título',
+  description: content,
+  priority: normalizePriority(taskData.priority),
+  status: 'pending',
+  dueDate: taskData.dueDate,
+  subtasks: [],
+  tags: []
+};
+
   } catch (error) {
     console.error('Error en generateTask:', error.response?.data || error.message);
     throw new Error('Error al comunicarse con el modelo de DeepSeek');
@@ -136,24 +169,27 @@ Responde en JSON con la siguiente estructura:
 
 async generateSubtasks(taskDescription: string) {
   const prompt = `
-Divide la siguiente tarea en subtareas claras (máximo 8). 
-Cada subtarea debe tener un título y una breve descripción.
+Genera subtareas simples, cortas y claras basadas en la siguiente tarea.
 
-⚠️ IMPORTANTE:
-- Devuelve SOLO un JSON válido.
+REGLAS IMPORTANTES:
+- Máximo 8 subtareas.
+- Cada subtarea debe tener un título de máximo 3 a 5 palabras.
+- NO uses palabras largas ni frases extensas.
+- La descripción es opcional. Si existe, debe tener máximo 8 a 12 palabras.
+- El formato debe ser EXACTAMENTE un JSON válido.
 - NO escribas texto fuera del JSON.
-- Si no puedes seguir el formato, devuelve un JSON vacío: {"subtasks": []}
+- Si no se puede generar subtareas, devuelve: {"subtasks": []}
 
 Formato esperado:
 {
   "subtasks": [
-    { "title": "Subtarea 1", "description": "Descripción breve" },
-    { "title": "Subtarea 2", "description": "Descripción breve" }
+    { "title": "Título corto", "description": "Descripción breve opcional" }
   ]
 }
 
 Tarea: "${taskDescription}"
-  `;
+`;
+
 
   const response = await axios.post(
     `${this.baseUrl}/chat/completions`,
