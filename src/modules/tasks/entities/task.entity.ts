@@ -1,6 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, UpdateDateColumn } from 'typeorm';
 import { Subtask } from './subtask.entity';
 
+
+export enum TaskPriority {
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low',
+}
+
+
 @Entity()
 export class Task {
   @PrimaryGeneratedColumn('uuid')
@@ -14,6 +22,13 @@ export class Task {
 
   @Column('text', { array: true, default: '{}' })
   tags: string[];
+
+    @Column({
+    type: 'enum',
+    enum: TaskPriority,
+    default: TaskPriority.LOW,
+  })
+  priority: TaskPriority;
 
   @Column({ default: false })
   completed: boolean;
