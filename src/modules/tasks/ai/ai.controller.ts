@@ -11,9 +11,4 @@ export class AiController {
   }
 
 
-    @Post('create-with-ai')
-  async createWithAi(@Body('message') message: string) {
-    return this.aiService.generateTask(message);
-  }
-
 }

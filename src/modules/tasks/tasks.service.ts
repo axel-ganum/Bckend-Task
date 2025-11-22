@@ -26,6 +26,7 @@ async createWithAi(message: string) {
     title: aiTask.title,
     description: aiTask.description,
     tags: aiTask.tags,
+    priority: aiTask.priority ?? 'low', 
   });
 
   try {
