@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import {  CreateTaskWithAiDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -25,8 +25,8 @@ async summarizeTasks() {
 
 
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(@Query('filter') filter: string) {
+    return this.tasksService.findAll(filter);
   }
 
   @Post('analyze')

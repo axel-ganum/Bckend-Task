@@ -36,9 +36,20 @@ async createWithAi(message: string) {
   }
 }
 
-async findAll() {
+async findAll(filter?: string) {
   try {
+    let where = {};
+
+    if (filter === 'completed') {
+      where = { completed: true };
+    }
+
+    if (filter === 'pending') {
+      where = { completed: false };
+    }
+
     return await this.taskRepository.find({
+      where,
       relations: ['subtasks'],
       order: { createdAt: 'DESC' as const },
     });
