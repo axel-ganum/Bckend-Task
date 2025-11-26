@@ -7,6 +7,7 @@ import { NotFoundException } from 'src/common/exceptions/not-found.exception';
 import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 import { AiService } from './ai/ai.service';
 import { SubtasksService } from './subtasks.service';
+import { TaskCategory } from './enum/task-category.enum';
 
 @Injectable()
 export class TasksService {
@@ -18,7 +19,7 @@ export class TasksService {
      private readonly aiService: AiService
   ) {}
 
-async createWithAi(message: string) {
+async createWithAi(message: string, category?: TaskCategory) {
   // Llamamos a la IA para generar título, descripción y tags
   const aiTask = await this.aiService.generateTask(message);
 
@@ -27,6 +28,7 @@ async createWithAi(message: string) {
     description: aiTask.description,
     tags: aiTask.tags,
     priority: aiTask.priority ?? 'low', 
+    category: category ?? TaskCategory.PERSONAL,
   });
 
   try {

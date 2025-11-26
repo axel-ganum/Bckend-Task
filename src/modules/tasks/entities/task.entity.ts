@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, UpdateDateColumn } from 'typeorm';
 import { Subtask } from './subtask.entity';
+import { TaskCategory } from '../enum/task-category.enum';
 
 
 export enum TaskPriority {
@@ -32,11 +33,18 @@ export class Task {
 
   @Column({ default: false })
   completed: boolean;
-  
+
+  @Column({
+    type: 'enum',
+    enum: TaskCategory,
+    default: TaskCategory.PERSONAL,
+  })
+  category: TaskCategory;
 
   @OneToMany(() => Subtask, subtask => subtask.task, { cascade: true })
   subtasks: Subtask[];
-   @CreateDateColumn()
+
+  @CreateDateColumn()
   createdAt: Date;
 
   // 🔄 Fecha de última actualización automática
