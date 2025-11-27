@@ -84,7 +84,9 @@ Formato:
   status: 'pending',
   dueDate: parsed.dueDate || taskData.dueDate,
   subtasks: parsed.subtasks || [],
-  tags: parsed.tags || []
+  tags: parsed.tags || [],
+  category: taskData.category,
+
 };
 
       } catch (e) {
@@ -110,7 +112,8 @@ const normalizePriority = (p) => {
   status: 'pending',
   dueDate: taskData.dueDate,
   subtasks: [],
-  tags: []
+  tags: [],
+  category: taskData.category
 };
 
   } catch (error) {

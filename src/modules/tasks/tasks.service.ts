@@ -19,7 +19,7 @@ export class TasksService {
      private readonly aiService: AiService
   ) {}
 
-async createWithAi(message: string, category?: TaskCategory) {
+async createWithAi(message: string) {
   // Llamamos a la IA para generar título, descripción y tags
   const aiTask = await this.aiService.generateTask(message);
 
@@ -27,8 +27,8 @@ async createWithAi(message: string, category?: TaskCategory) {
     title: aiTask.title,
     description: aiTask.description,
     tags: aiTask.tags,
-    priority: aiTask.priority ?? 'low', 
-    category: category ?? TaskCategory.PERSONAL,
+    priority: aiTask.priority ?? 'low',
+    category: aiTask.category ?? TaskCategory.PERSONAL,
   });
 
   try {
