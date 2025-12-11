@@ -21,16 +21,15 @@
 
 ## 📋 Descripción
 
-API RESTful desarrollada con NestJS para la gestión de tareas con capacidades de inteligencia artificial. Este proyecto permite crear, leer, actualizar y eliminar tareas, además de ofrecer funcionalidades avanzadas como la generación automática de tareas mediante IA.
+API RESTful desarrollada con NestJS para la gestión de tareas con capacidades de inteligencia artificial. Este proyecto permite crear, leer, actualizar y eliminar tareas, además de ofrecer funcionalidades avanzadas como la generación automática de tareas mediante IA. Utiliza Supabase como base de datos PostgreSQL en la nube, ofreciendo una solución escalable y fácil de configurar.
 
 ## 🚀 Características
 
 - ✅ Gestión completa de tareas (CRUD)
 - 🤖 Generación automática de tareas mediante IA
 - 🔍 Búsqueda y filtrado de tareas
-- 🔐 Autenticación y autorización
-- 🛡️ Validación de datos integrada
-- 📊 Base de datos PostgreSQL con TypeORM
+- 🚀 Base de datos PostgreSQL en la nube con Supabase
+- 🛠️ Integración con TypeORM para el manejo de datos
 - 🧪 Pruebas unitarias y de integración
 - 📦 Configuración mediante variables de entorno
 
@@ -38,8 +37,8 @@ API RESTful desarrollada con NestJS para la gestión de tareas con capacidades d
 
 - Node.js (v16 o superior)
 - npm o yarn
-- PostgreSQL
-- Cuenta en un servicio de IA (si se utiliza la generación de tareas)
+- Cuenta en [Supabase](https://supabase.com/) (para la base de datos)
+- Cuenta en un servicio de IA (opcional, solo si se utiliza la generación de tareas)
 
 ## 🚀 Instalación
 
@@ -60,12 +59,13 @@ API RESTful desarrollada con NestJS para la gestión de tareas con capacidades d
    PORT=3000
    NODE_ENV=development
    
-   # Configuración de la base de datos
-   DB_HOST=localhost
+   # Configuración de Supabase (obtén estos valores en tu panel de control de Supabase)
+   DB_HOST=db.xxxxxxxxxxxxx.supabase.co
    DB_PORT=5432
-   DB_USERNAME=tu_usuario
-   DB_PASSWORD=tu_contraseña
-   DB_DATABASE=task_manager
+   DB_USERNAME=postgres
+   DB_PASSWORD=tu_contraseña_supabase
+   DB_DATABASE=postgres
+   DB_SSL=true
    
    # Configuración de IA (opcional)
    AI_API_KEY=tu_api_key
