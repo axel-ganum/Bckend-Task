@@ -122,7 +122,7 @@ const normalizePriority = (p) => {
   }
 }
 
- async analyzeTasks(tasks: any[], question: string) {
+async analyzeTasks(tasks: any[], question: string) {
   const prompt = `
 El usuario tiene las siguientes tareas:
 ${JSON.stringify(tasks, null, 2)}
@@ -151,15 +151,28 @@ Responde en JSON con la siguiente estructura:
       },
     );
 
-    const content = response.data.choices[0].message?.content?.trim();
+    const content = response.data?.choices?.[0]?.message?.content?.trim() || '';
 
-    // intentar parsear como JSON
+    // --------------------------------------------------------
+    // NUEVO BLOQUE: limpiar markdown y extraer JSON real
+    // --------------------------------------------------------
     try {
-      return JSON.parse(content);
+      const cleaned = content
+        .replace(/```json([\s\S]*?)```/gi, '$1')
+        .replace(/```([\s\S]*?)```/gi, '$1')
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+
+      return {
+        insights: typeof parsed.insights === 'string' ? parsed.insights : '',
+        suggestions: typeof parsed.suggestions === 'string' ? parsed.suggestions : '',
+      };
     } catch {
+      // fallback si no hay JSON válido
       return {
         insights: content || 'No hay insights',
-        suggestions: content || 'No hay sugerencias',
+        suggestions: '', // evita duplicación
       };
     }
 
@@ -168,6 +181,7 @@ Responde en JSON con la siguiente estructura:
     throw new Error('Error al comunicarse con el modelo de DeepSeek');
   }
 }
+
 
 
 async generateSubtasks(taskDescription: string) {
