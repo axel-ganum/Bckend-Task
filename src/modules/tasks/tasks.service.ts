@@ -1,10 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { NotFoundException } from 'src/common/exceptions/not-found.exception';
-import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 import { AiService } from './ai/ai.service';
 import { SubtasksService } from './subtasks.service';
 import { TaskCategory } from './enum/task-category.enum';
@@ -33,8 +31,8 @@ async createWithAi(message: string) {
 
   try {
     return await this.taskRepository.save(task);
-  } catch {
-    throw new internalServerException('Error al crear tarea con IA');
+  } catch (error) {
+    throw new InternalServerErrorException('Error al crear tarea con IA', error.message);
   }
 }
 
@@ -79,18 +77,24 @@ async findOne(id: string) {
     const task = await this.findOne(id);
     Object.assign(task, dto);
    try {
-    return await this.taskRepository.save(task);
+    const updateTaskDto = { ...task };
+    const result = await this.taskRepository.update(id, updateTaskDto);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Tarea con ID ${id} no encontrada`);
+    }
+    return this.taskRepository.findOne({ where: { id } });
   } catch (error) {
-    throw new internalServerException('Error updating task');
+    throw new InternalServerErrorException('Error al actualizar la tarea', error.message);
 }
   }
 
   async remove(id: string) {
     const task = await this.findOne(id);
     try {
-    return await this.taskRepository.remove(task);
+    await this.taskRepository.delete(id);
+    return { message: 'Tarea eliminada correctamente' };
   } catch (error) {
-    throw new internalServerException('Error removing task');
+    throw new InternalServerErrorException('Error al eliminar la tarea', error.message);
   }
   }
 
@@ -117,7 +121,7 @@ async summarizeTasks() {
     return summary;
   } catch (error) {
     console.error('Error al resumir tareas:', error.message);
-    throw new internalServerException('No se pudo generar el resumen de tareas');
+    throw new InternalServerErrorException('No se pudo generar el resumen de tareas', error.message);
   }
 }
 

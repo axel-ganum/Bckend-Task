@@ -47,12 +47,16 @@ async summarizeTasks() {
  }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTaskDto): Promise<Task> {
-    return this.tasksService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateTaskDto): Promise<Task | null> {
+    const result = await this.tasksService.update(id, dto);
+    if (!result) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+    return result;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<Task> {
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.tasksService.remove(id);
   }
 }

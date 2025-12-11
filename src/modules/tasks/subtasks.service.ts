@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subtask } from './entities/subtask.entity';
 import { Task } from './entities/task.entity';
-import { NotFoundException } from 'src/common/exceptions/not-found.exception';
-import { internalServerException } from 'src/common/exceptions/internal-server.exception';
 
 @Injectable()
 export class SubtasksService {
@@ -34,7 +32,7 @@ export class SubtasksService {
     try {
       return await this.subtaskRepository.save(created);
     } catch (error) {
-      throw new internalServerException('Error al guardar subtareas');
+      throw new InternalServerErrorException('Error al guardar subtareas', error.message);
     }
   }
 
@@ -47,7 +45,7 @@ export class SubtasksService {
     try {
       return await this.subtaskRepository.save(subtask);
     } catch (error) {
-      throw new internalServerException('Error al actualizar subtarea');
+      throw new InternalServerErrorException('Error al actualizar subtarea', error.message);
     }
   }
 
@@ -58,7 +56,7 @@ export class SubtasksService {
     try {
       return await this.subtaskRepository.remove(subtask);
     } catch (error) {
-      throw new internalServerException('Error al eliminar subtarea');
+      throw new InternalServerErrorException('Error al eliminar subtarea', error.message);
     }
   }
 
