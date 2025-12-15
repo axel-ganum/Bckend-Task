@@ -8,6 +8,7 @@ async function bootstrap() {
 
    app.enableCors({
     origin: [
+      'https://taka-ai.netlify.app/',
       'http://localhost:5173', // URL del frontend en desarrollo (Vite)
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
